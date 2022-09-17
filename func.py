@@ -53,11 +53,12 @@ def remove_essential(G : nx.Graph, file_name : str) -> nx.Graph:
 
     return G
 
-def parser(names : list) -> dict:
+def parser(names : list, val = True) -> dict:
     '''
     Converts all protein names to the names in the network
     
     names -> the names of the proetins needed to change
+    val -> determies the direction of the mapping
 
     returns a dictionary with the corresponding names
     '''
@@ -67,7 +68,13 @@ def parser(names : list) -> dict:
 
     nodes = {}
     for name in names:
-        nodes[name] = (proteins.loc[proteins['preferred_name'] == name])['#string_protein_id'].iloc[0]
+
+        if val:
+            # changes from perferred to 4xxx
+            nodes[name] = (proteins.loc[proteins['preferred_name'] == name])['#string_protein_id'].iloc[0]
+        else:
+            # changes from 4xxx to perferred 
+            nodes[name] = (proteins.loc[proteins['#string_protein_id'] == name])['preferred_name'].iloc[0]
 
     return nodes
 
@@ -92,7 +99,7 @@ def renaming_clusters(clusters : list, protein_hash : dict) -> list:
 
     return named_clusters
 
-def get_weight(G : nx.Graph, cluster1, cluster2) -> int:
+def get_weight(G : nx.Graph, cluster1 : list, cluster2 : list) -> int:
     '''
     G -> the orginal unweighted network
     cluster1 -> a cluster after MCL
@@ -109,7 +116,7 @@ def get_weight(G : nx.Graph, cluster1, cluster2) -> int:
     
     return weight
 
-def convert_to_weighted(G_orginal, clusters):
+def convert_to_weighted(G_orginal : nx.Graph, clusters : list) -> nx.Graph:
     '''
     Transforms an unweighted graph to a weighted graph based on the number of edges it
     has between different clusters
@@ -142,5 +149,28 @@ def convert_to_weighted(G_orginal, clusters):
         i += 1
 
     return G
+
+def find_cluster(name : str, clusters : list) -> int:
+    '''
+    Finds the cluster that the protein is associated with
+
+    name -> name of the protein
+    clusters -> clusters returned from the MCL algorithm 
+    '''
+    idx = 0
+    while idx < len(clusters):
+        if name in clusters[idx]:
+            return idx
+        idx += 1
+
+    return idx
+
+def cluster_graph(G : nx.graph, cluster : list) -> nx.Graph:
+    '''
+    Creates a subgraph with nodes only in the cluster
+    '''
+    new_graph = G.subgraph(cluster)
+    return new_graph
+
 
 
