@@ -6,14 +6,14 @@ This file here stores all necessary functions that need to be
 reused throughout the different notebooks we have
 '''
 
-def remove_threshold(file_name : str, num : int) -> nx.graph:
+def remove_threshold(file_name : str, num : int) -> nx.Graph:
     '''
     Creates a nx.graph and removes all edges with a score of less than num
 
     file_name -> the file that stores the network
     num -> the threshold to remove at
 
-    returns a nx.graph after removal of edges
+    returns a nx.Graph after removal of edges
     '''
 
     df = pd.read_csv(file_name, sep=" ")
@@ -31,11 +31,11 @@ def remove_threshold(file_name : str, num : int) -> nx.graph:
 
     return G 
 
-def remove_essential(G : nx.graph, file_name : str) -> nx.graph:
+def remove_essential(G : nx.Graph, file_name : str) -> nx.Graph:
     '''
     Removes all essential proteins
     
-    G -> the nx.graph of our network
+    G -> the nx.Graph of our network
     file_name -> the file that stores all the essential proteins
 
     returns the graph without these proteins
@@ -71,7 +71,6 @@ def parser(names : list) -> dict:
 
     return nodes
 
-
 def renaming_clusters(clusters : list, protein_hash : dict) -> list:
     '''
     Transforms index based names to protein names
@@ -93,6 +92,55 @@ def renaming_clusters(clusters : list, protein_hash : dict) -> list:
 
     return named_clusters
 
-# def convert_to_weighted():
+def get_weight(G : nx.Graph, cluster1, cluster2) -> int:
+    '''
+    G -> the orginal unweighted network
+    cluster1 -> a cluster after MCL
+    cluster2 -> a different cluster after MCL 
+
+    returns the number of edges from cluster1 to cluster2
+    '''
+    weight = 0
+
+    for node1 in cluster1:
+        for node2 in cluster2:
+            if G.has_edge(node1, node2):
+                weight += 1
+    
+    return weight
+
+def convert_to_weighted(G_orginal, clusters):
+    '''
+    Transforms an unweighted graph to a weighted graph based on the number of edges it
+    has between different clusters
+
+    G_orginal -> the orginal unweighted graph
+    clusters -> clusters identified when running MCL
+
+    returns nx.Graph
+    '''
+
+    G = nx.Graph()
+    
+    #Creates a graph with nodes as each cluster
+    nodes = [i for i in range(len(clusters))]
+    G.add_nodes_from(nodes)
+
+    #loops over each p[air of clusters and determines the corresponding weight
+    i = 0
+    while i < len(clusters) - 1:
+
+        j = i + 1
+        while j < len(clusters):
+            weight = get_weight(G_orginal, clusters[i], clusters[j])
+
+            # only add an edge if there orginaly were edges
+            if weight != 0:
+                G.add_edge(i ,j, weight = weight)
+            j += 1
+
+        i += 1
+
+    return G
 
 
