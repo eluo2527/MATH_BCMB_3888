@@ -53,23 +53,46 @@ def remove_essential(G : nx.graph, file_name : str) -> nx.graph:
 
     return G
 
-def parser(names : list) -> list:
+def parser(names : list) -> dict:
     '''
     Converts all protein names to the names in the network
     
     names -> the names of the proetins needed to change
 
-    returns a list with the corresponding names
+    returns a dictionary with the corresponding names
     '''
 
     # proteins -> a full list of all the proteins information in our network
     proteins = pd.read_csv("network_info/4932.protein.info.v11.5.txt", sep = "\t")
 
-    nodes = [] 
+    nodes = {}
     for name in names:
-        nodes.append((proteins.loc[proteins['preferred_name'] == name])['#string_protein_id'].iloc[0])
+        nodes[name] = (proteins.loc[proteins['preferred_name'] == name])['#string_protein_id'].iloc[0]
 
     return nodes
 
+
+def renaming_clusters(clusters : list, protein_hash : dict) -> list:
+    '''
+    Transforms index based names to protein names
+    
+    clusters -> list of the clusters, where each cluster is a list
+                of proteins by index
+    protein_hash -> a dictionary with mapping from index to protein name 
+     
+    returns cluster list with protein names
+    '''
+
+    named_clusters = []
+    lpd1pos = 0
+    for index,cluster in enumerate(clusters):
+        named_cluster = tuple([protein_hash[node] for node in cluster])
+        if "4932.YFL018C" in named_cluster:
+            lpd1pos = index
+        named_clusters.append(named_cluster)
+
+    return named_clusters
+
+# def convert_to_weighted():
 
 
