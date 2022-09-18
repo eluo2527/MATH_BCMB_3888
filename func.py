@@ -82,7 +82,7 @@ def renaming_clusters(clusters : list, protein_hash : dict) -> list:
     '''
     Transforms index based names to protein names
     
-    clusters -> list of the clusters, where each cluster is a list
+    clusters -> list of the clusters, where each cluster is a tuple
                 of proteins by index
     protein_hash -> a dictionary with mapping from index to protein name 
      
@@ -90,16 +90,13 @@ def renaming_clusters(clusters : list, protein_hash : dict) -> list:
     '''
 
     named_clusters = []
-    lpd1pos = 0
-    for index,cluster in enumerate(clusters):
+    for cluster in clusters:
         named_cluster = tuple([protein_hash[node] for node in cluster])
-        if "4932.YFL018C" in named_cluster:
-            lpd1pos = index
         named_clusters.append(named_cluster)
 
     return named_clusters
 
-def get_weight(G : nx.Graph, cluster1 : list, cluster2 : list) -> int:
+def get_weight(G : nx.Graph, cluster1 : tuple, cluster2 : tuple) -> int:
     '''
     G -> the orginal unweighted network
     cluster1 -> a cluster after MCL
@@ -165,12 +162,72 @@ def find_cluster(name : str, clusters : list) -> int:
 
     return idx
 
-def cluster_graph(G : nx.graph, cluster : list) -> nx.Graph:
+def cluster_graph(G : nx.Graph, *clusters : tuple) -> nx.Graph:
     '''
-    Creates a subgraph with nodes only in the cluster
+    Creates a subgraph with nodes only in the clusters specified
+
+    G -> the orginal unweighted graph
+    clusters -> the clusters of proteins that need to be examined
     '''
-    new_graph = G.subgraph(cluster)
+
+    # this combines all the clusters into a single cluster 
+    all_cluster = [node for cluster in clusters for node in cluster]
+
+    # creates a new graph with only the nodes specified along with edges
+    new_graph = G.subgraph(all_cluster)
     return new_graph
 
+def between_centrality(G_orginal : nx.Graph, cluster1 : tuple, cluster2 : tuple) -> dict:
+    '''
+    Calculates the betweenness centrality for each node in the 2 clusters specified.
+
+    G_orginal -> the orginal unweighted graph
+    cluster1 -> a cluster after MCL
+    cluster2 -> a different cluster after MCL 
+
+    returns a dictionary with nodes as keys and its betweenness cemtrality as its value
+    '''
+
+    # calls the function cluster_graph to create a graph with only nodes in the 2 clusters
+    G = cluster_graph(G_orginal, cluster1, cluster2)
+
+    # stores all paths identified with 
+    # -> key in the form (source, sink)
+    # -> value which is a list of the paths 
+    all_paths = {}
+
+    # the total amount of paths 
+    total = 0
+    
+    # initerates over all pairs in each cluster
+    for node1 in cluster1:
+        for node2 in cluster2:
+
+            # finds all shortest paths from source (node1) to sink (node2)
+            paths = list(nx.all_shortest_paths(G, node1, node2))
+            all_paths[(node1, node2)] = paths
+            total += len(paths)
+    
+    # initialises a dictionary with the keys as nodes and the value as 0
+    merged = cluster1 + cluster2
+    centrality_value = dict.fromkeys(merged, 0)
+
+    # finds the amount of times a node appears in the shortest paths exlusive of the source and sink
+    for key, val in all_paths.items():
+        for path in val:
+            for node in path[1:-1]:
+                centrality_value[node] += 1
+
+    # divide each value by the total to normalise
+    for key, val in centrality_value.items():
+        centrality_value[key] /= total
+
+    return centrality_value
+
+def shortest_path(G: nx.Graph, source : str, sink : str) -> list:
+    '''
+    Finds the shortest path from the source to the sink
+    '''
+    pass
 
 
