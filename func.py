@@ -230,7 +230,7 @@ def shortest_path(G: nx.Graph, source : str, sink : str) -> list:
     '''
     pass
 
-def pretty_draw(G: nx.Graph,  *highlight_nodes: str,with_labels= False,only_connected=False) -> None:
+def pretty_draw(G: nx.Graph,  *highlight_nodes: str, with_highlight_labels = False, with_other_labels= False,only_connected=False) -> None:
     '''
     Provide the function with a node,
     Add highlight nodes and it will paint these red,
@@ -253,15 +253,17 @@ def pretty_draw(G: nx.Graph,  *highlight_nodes: str,with_labels= False,only_conn
         G0 = G
     node_colourmap = []
     node_sizemap = []
-    labels = {}
+    highlight_labels = {}
+    other_labels = {}
     for node in G0:
         if node in highlight_nodes:
             node_colourmap.append((1,0.2,0.2,0.8))
             node_sizemap.append(300)
-            labels[node] = node
+            if with_highlight_labels: highlight_labels[node] = node
         else:
             node_colourmap.append((0.4,0.4,0.8,0.6))
             node_sizemap.append(200)
+            if with_other_labels: other_labels[node] = node
     
     edge_colourmap = []
 
@@ -290,6 +292,7 @@ def pretty_draw(G: nx.Graph,  *highlight_nodes: str,with_labels= False,only_conn
         edge_color=edge_colourmap,
         width=1,
     )
-    if with_labels: nx.draw_networkx_labels(G0,pos,labels=labels,font_size=10,bbox=dict(color=(1,1,1,0.6)),font_weight='bold',font_family='sans-serif')
+    if with_highlight_labels: nx.draw_networkx_labels(G0,pos,labels=highlight_labels,font_size=10,bbox=dict(color=(1,1,1,0.6)),font_weight='bold',font_family='sans-serif')
+    if with_other_labels: nx.draw_networkx_labels(G0,pos,labels=other_labels,font_size=10,font_weight='bold',font_family='sans-serif')
 
     return plt.show()
