@@ -230,4 +230,66 @@ def shortest_path(G: nx.Graph, source : str, sink : str) -> list:
     '''
     pass
 
+def pretty_draw(G: nx.Graph,  *highlight_nodes: str,with_labels= False,only_connected=False) -> None:
+    '''
+    Provide the function with a node,
+    Add highlight nodes and it will paint these red,
+    Add with_labels = True to show the labels
+    Add only_connected = True to only show the connected nodes
+    '''
+    import matplotlib.pyplot as plt
 
+    if only_connected:
+        components = list(nx.connected_components(G))
+        nodes = set()
+        for component in components:
+            if set(highlight_nodes) & component != set():
+                nodes |= component
+        G0 = G.subgraph(nodes)
+
+        if len(highlight_nodes)==0:
+            G0 = G.subgraph(max(components, key=len))
+    else:
+        G0 = G
+    node_colourmap = []
+    node_sizemap = []
+    labels = {}
+    for node in G0:
+        if node in highlight_nodes:
+            node_colourmap.append((1,0.2,0.2,0.8))
+            node_sizemap.append(300)
+            labels[node] = node
+        else:
+            node_colourmap.append((0.4,0.4,0.8,0.6))
+            node_sizemap.append(200)
+    
+    edge_colourmap = []
+
+
+    for edge in G0.edges:
+        if len(highlight_nodes) == 1:
+            if (set([highlight_nodes]) & set(edge)) != set():
+                edge_colourmap.append((1,0,0,1))
+            else:
+                edge_colourmap.append((0,0,0,0.2))
+        elif len(highlight_nodes) >  1:
+            if (set(highlight_nodes) & set(edge)) != set():
+                edge_colourmap.append((1,0,0,1))
+            else:
+                edge_colourmap.append((0,0,0,0.2))
+        else:
+            edge_colourmap.append((0,0,0,0.2))
+    plt.figure(1,figsize=(30,30))
+    seed = 1
+    pos = nx.spring_layout(G0, seed=seed)
+    nodes = nx.draw_networkx_nodes(G0, pos=pos, node_size=node_sizemap, node_color=node_colourmap)
+    edges = nx.draw_networkx_edges(
+        G0,
+        pos=pos,
+        node_size=300,
+        edge_color=edge_colourmap,
+        width=1,
+    )
+    if with_labels: nx.draw_networkx_labels(G0,pos,labels=labels,font_size=10,bbox=dict(color=(1,1,1,0.6)),font_weight='bold',font_family='sans-serif')
+
+    return plt.show()
