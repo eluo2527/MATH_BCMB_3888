@@ -8,7 +8,7 @@ reused throughout the different notebooks we have
 
 def remove_threshold(file_name : str, num : int) -> nx.Graph:
     '''
-    Creates a nx.graph and removes all edges with a score of less than num
+    Creates a nx.graph and removes all edges with a score greater than or equal to num
 
     file_name -> the file that stores the network
     num -> the threshold to remove at
