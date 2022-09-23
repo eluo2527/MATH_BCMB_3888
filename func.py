@@ -230,4 +230,59 @@ def shortest_path(G: nx.Graph, source : str, sink : str) -> list:
     '''
     pass
 
+def connected_clusters(G : nx.Graph, source : int) -> nx.Graph:
+    '''
+    This function takes in the orginal weighted graph and a source cluster, and finds the
+    connected component which contains the cluster
+
+    G -> the orginal unweighted graph
+    source -> the cluster which determines the connected component (the index of the cluster)
+
+    returns the connected component of that node
+    '''
+
+    nodes = nx.node_connected_component(G, source)
+    new_graph = G.subgraph(nodes)
+
+    return new_graph
+
+def weighted_centrality(G_weighted : nx.Graph, source : tuple) :
+    '''
+    Takes in a weighted graph and finds the betweenness centrality between a source cluster
+    and all other clusters within the connected network
+
+    G_weighted -> a connected weighted graph
+    source -> a cluster in the graph
+
+    returns a list of tuples, where each tuple is (source)
+    '''
+
+    # this will hold the total number of paths
+    total = 0
+    all_paths = {}
+
+    #need to have all paths starting from source
+    for node in G_weighted.nodes:
+        if node != source:
+            paths = list(nx.all_shortest_paths(G_weighted, source, node, weight = 'weight'))
+            total += len(paths)
+            all_paths[node] = paths
+    
+
+    centrality_value = dict.fromkeys(G_weighted.nodes, 0)
+
+    # finds the amount of times a node appears in the shortest paths exlusive of the source and sink
+    for key, val in all_paths.items():
+        for path in val:
+            for node in path[1:-1]:
+                centrality_value[node] += 1
+
+    # divide each value by the total to normalise
+    for key, val in centrality_value.items():
+        centrality_value[key] /= total
+
+    centrality_value_sort = dict(sorted(centrality_value.items(), key=lambda item: -item[1]))
+
+    return centrality_value_sort
+
 
