@@ -111,8 +111,9 @@ def get_weight(G : nx.Graph, cluster1 : tuple, cluster2 : tuple) -> int:
         for node2 in cluster2:
             if G.has_edge(node1, node2):
                 weight += 1
-    
-    return weight
+    if weight == 0:
+        return weight
+    return 1/weight
 
 def convert_to_weighted(G_orginal : nx.Graph, clusters : list) -> nx.Graph:
     '''
@@ -176,6 +177,11 @@ def cluster_graph(G : nx.Graph, *clusters : tuple) -> nx.Graph:
 
     # creates a new graph with only the nodes specified along with edges
     new_graph = G.subgraph(all_cluster)
+
+    if nx.is_connected(new_graph):
+        print("Graph is not connected. Pruning to largest connected component")
+        largest_component = [x for x in nx.connected_components(new_graph)][0]
+        new_graph = new_graph.subgraph(largest_component)
     return new_graph
 
 def between_centrality(G_orginal : nx.Graph, cluster1 : tuple, cluster2 : tuple) -> dict:
