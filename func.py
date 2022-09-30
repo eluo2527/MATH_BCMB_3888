@@ -178,7 +178,7 @@ def cluster_graph(G : nx.Graph, *clusters : tuple) -> nx.Graph:
     # creates a new graph with only the nodes specified along with edges
     new_graph = G.subgraph(all_cluster)
 
-    if nx.is_connected(new_graph):
+    if nx.is_connected(new_graph)==False:
         print("Graph is not connected. Pruning to largest connected component")
         largest_component = [x for x in nx.connected_components(new_graph)][0]
         new_graph = new_graph.subgraph(largest_component)
@@ -359,3 +359,11 @@ def pretty_draw(G: nx.Graph,  *highlight_nodes: str, with_highlight_labels = Fal
     if with_other_labels: nx.draw_networkx_labels(G0,pos,labels=other_labels,font_size=10,font_weight='bold',font_family='sans-serif')
 
     return plt.show()
+
+def json_save(string: str, filename: str) -> None:
+    '''
+    Saves a string to a json file
+    '''
+    import json
+    with open(filename, 'w') as f:
+        json.dump(string, f)

@@ -99,6 +99,6 @@ filtered_weight = func.connected_clusters(weighted_network_rename, 'w32')
 print("Creating Weighted Centrality")
 weighted_centrality = func.weighted_centrality(filtered_weight, 'w32')
 
-non_zero_weighted = {protein:weight for (protein,weight) in weighted_centrality.items() if weight!=0}
+#non_zero_weighted = {protein:weight for (protein,weight) in weighted_centrality.items() if weight!=0}
 
-print(non_zero_weighted)
+func.json_save(weighted_centrality, "weighted_centrality.json")
