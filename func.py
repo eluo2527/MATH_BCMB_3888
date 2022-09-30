@@ -288,7 +288,7 @@ def weighted_centrality(G_weighted : nx.Graph, source : tuple) :
     for key, val in centrality_value.items():
         centrality_value[key] /= total
 
-    centrality_value_sort = OrderedDict(sorted(centrality_value.items(), key=lambda item: -item[1]))
+    centrality_value_sort = dict(sorted(centrality_value.items(), key=lambda item: -item[1]))
 
     return centrality_value_sort
 
