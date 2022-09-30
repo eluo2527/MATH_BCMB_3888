@@ -79,6 +79,19 @@ def parser(names : list, val = True) -> dict:
 
     return nodes
 
+def name_change(node):
+    '''
+    Changes the names of the clusters to the names of the proteins
+    '''
+    proteins = pd.read_csv("network_info/4932.protein.info.v11.5.txt", sep = "\t")
+    if node[0:5] == "4932.":
+        # changes from 4xxx to perferred 
+        return(proteins.loc[proteins['#string_protein_id'] == node])['preferred_name'].iloc[0]
+    else:
+        # changes from perferred to 4xxx
+        return(proteins.loc[proteins['preferred_name'] == node])['#string_protein_id'].iloc[0]
+       
+
 def renaming_clusters(clusters : list, protein_hash : dict) -> list:
     '''
     Transforms index based names to protein names
@@ -366,4 +379,4 @@ def json_save(string: str, filename: str) -> None:
     '''
     import json
     with open(filename, 'w') as f:
-        json.dump(string, f)
+        json.dump(string, f, indent=4)

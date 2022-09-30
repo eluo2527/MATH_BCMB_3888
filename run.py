@@ -77,8 +77,14 @@ b_centrality = func.between_centrality(G, named_clusters[32], named_clusters[93]
 # sorts the dictionary such that highest centrality is first
 sorted_betweeness = dict(sorted(b_centrality.items(), key = lambda x: -x[1]))
 
+sorted_betweeness_names = {}
+for key in sorted_betweeness:
+    sorted_betweeness_names[func.name_change(key)] = sorted_betweeness[key]
+func.json_save(sorted_betweeness_names, "betweeness.json")
+
 # gives first 5 maybe or more to BCMB students
 prefered_names = func.parser(sorted_betweeness.keys(), False)
+# func.json_save(prefered_names, "prefered_names.json")
 
 # this here is just within cluster 32
 
