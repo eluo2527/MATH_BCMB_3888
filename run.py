@@ -7,6 +7,7 @@ For fast graphs see original notebook.
 ################################################################################
 # IMPORTS
 from logging import warning
+from unicodedata import name
 import networkx as nx
 import markov_clustering as mc
 import numpy as np
@@ -55,10 +56,10 @@ for index, node in enumerate(G.nodes):
 
 # Renaming proteins in the clusters
 named_clusters = func.renaming_clusters(clusters, protein_hash)
-
 # Create weighted network of clusters
 print("Creating weighted network of clusters")
 weighted_network = func.convert_to_weighted(G, named_clusters)
+print(weighted_network)
 
 
 mapping = {node : f"w{node}" for node in weighted_network.nodes}
@@ -93,10 +94,10 @@ c32 = nx.betweenness_centrality(func.cluster_graph(G, named_clusters[32]))
 
 # sorts the dictionary such that highest centrality is first
 c32_sorted = dict(sorted(c32.items(), key = lambda x: -x[1]))
-
+print(c32_sorted)
 # gives first 5 maybe or more to BCMB students
 c32_sorted = func.parser(c32_sorted.keys(), False)
-
+print(G)
 # Iscolated the middle section of the graph as seen in an earlier picture
 # Used clsuter 32 as the source as it contains LPD1 
 
