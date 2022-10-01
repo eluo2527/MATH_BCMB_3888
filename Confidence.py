@@ -39,8 +39,10 @@ def importance(confidence):
         list_between = list(zip(b_centrality.keys(), b_centrality.values()))
         for tup in list_between:
             b_centrals.append(tup)
+            #if not (tup[0] in named_clusters[target]):
+                #b_centrals.append(tup)
         
-        sorted_centrals = sorted(b_centrals, key=lambda tup: tup[1])
-        sorted_centrals.reverse()
+    sorted_centrals = sorted(b_centrals, key=lambda tup: tup[1])
+    sorted_centrals.reverse()
     
     return sorted_centrals
