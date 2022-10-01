@@ -46,3 +46,6 @@ def importance(confidence):
     sorted_centrals.reverse()
     
     return sorted_centrals
+
+# with open("conf_600_900", 'w') as f:
+#     json.dump(lists, f, indent = 2)
