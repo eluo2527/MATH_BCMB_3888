@@ -1,6 +1,7 @@
 from typing import OrderedDict
 import pandas as pd
 import networkx as nx
+import pathlib 
 
 '''
 This file here stores all necessary functions that need to be
@@ -91,7 +92,6 @@ def name_change(node):
         # changes from perferred to 4xxx
         return(proteins.loc[proteins['preferred_name'] == node])['#string_protein_id'].iloc[0]
        
-
 def renaming_clusters(clusters : list, protein_hash : dict) -> list:
     '''
     Transforms index based names to protein names
@@ -191,10 +191,10 @@ def cluster_graph(G : nx.Graph, *clusters : tuple) -> nx.Graph:
     # creates a new graph with only the nodes specified along with edges
     new_graph = G.subgraph(all_cluster)
 
-    if nx.is_connected(new_graph)==False:
-        print("Graph is not connected. Pruning to largest connected component")
-        largest_component = [x for x in nx.connected_components(new_graph)][0]
-        new_graph = new_graph.subgraph(largest_component)
+    # if nx.is_connected(new_graph)==False:
+    #     print("Graph is not connected. Pruning to largest connected component")
+    #     largest_component = [x for x in nx.connected_components(new_graph)][0]
+    #     new_graph = new_graph.subgraph(largest_component)
     return new_graph
 
 def between_centrality(G_orginal : nx.Graph, cluster1 : tuple, cluster2 : tuple) -> dict:
@@ -242,7 +242,9 @@ def between_centrality(G_orginal : nx.Graph, cluster1 : tuple, cluster2 : tuple)
     for key, val in centrality_value.items():
         centrality_value[key] /= total
 
-    return centrality_value
+    centrality_value_sort = dict(sorted(centrality_value.items(), key=lambda item: -item[1]))
+
+    return centrality_value_sort
 
 def shortest_path(G: nx.Graph, source : str, sink : str) -> list:
     '''
@@ -274,11 +276,15 @@ def weighted_centrality(G_weighted : nx.Graph, source : tuple) :
     G_weighted -> a connected weighted graph
     source -> a cluster in the graph
 
-    returns a list of tuples, where each tuple is (source)
+    returns a dictionary with clusters as keys and its betweenness cemtrality as its value
     '''
 
     # this will hold the total number of paths
     total = 0
+
+    # stores all paths identified with 
+    # -> key in the form (sink)
+    # -> value which is a list of the paths from source to sink
     all_paths = {}
 
     #need to have all paths starting from source
@@ -288,7 +294,7 @@ def weighted_centrality(G_weighted : nx.Graph, source : tuple) :
             total += len(paths)
             all_paths[node] = paths
     
-
+    # initialise a dictionary with the nodes as keys and value as 0
     centrality_value = dict.fromkeys(G_weighted.nodes, 0)
 
     # finds the amount of times a node appears in the shortest paths exlusive of the source and sink
@@ -378,5 +384,11 @@ def json_save(string: str, filename: str) -> None:
     Saves a string to a json file
     '''
     import json
+
     with open(filename, 'w') as f:
         json.dump(string, f, indent=4)
+
+    # f = open(filename, 'w')
+    # json.dump(string, f, indent=4)
+    # f.close()
+

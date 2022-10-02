@@ -7,7 +7,6 @@ For fast graphs see original notebook.
 ################################################################################
 # IMPORTS
 from logging import warning
-from unicodedata import name
 import networkx as nx
 import markov_clustering as mc
 import numpy as np
