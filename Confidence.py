@@ -11,8 +11,8 @@ def importance(confidence):
     network_name = "network_info/4932_protein_links_v11_5.txt"
     G = func.remove_threshold(network_name, confidence)
     
-    essential_proteins = "network_info/essential_proteins.csv"
-    G = func.remove_essential(G, essential_proteins)
+#     essential_proteins = "network_info/essential_proteins.csv"
+#     G = func.remove_essential(G, essential_proteins)
 
     adj_matrix = nx.adjacency_matrix(G) 
     protein_hash = {}
@@ -26,26 +26,13 @@ def importance(confidence):
     
     target = func.find_cluster("4932.YFL018C", named_clusters)
     
-    connected = []
-    for i in range(len(named_clusters)):
-        if i != target:
-            cluster_network = func.cluster_graph(G, named_clusters[target], named_clusters[i])
-            if nx.is_connected(cluster_network):
-                connected.append(i)
+    weighted_network = func.convert_to_weighted(G, named_clusters)
     
-    b_centrals = []
-    for i in connected:
-        b_centrality = func.between_centrality(G, named_clusters[target], named_clusters[i])
-        list_between = list(zip(b_centrality.keys(), b_centrality.values()))
-        for tup in list_between:
-            b_centrals.append(tup)
-            #if not (tup[0] in named_clusters[target]):
-                #b_centrals.append(tup)
-        
-    sorted_centrals = sorted(b_centrals, key=lambda tup: tup[1])
-    sorted_centrals.reverse()
+    mapping = {node : f"w{node}" for node in weighted_network.nodes}
+    weighted_network_rename = nx.relabel_nodes(weighted_network, mapping)
+    filtered_weight = func.connected_clusters(weighted_network_rename, mapping[target])
+    weighted_centrality = func.weighted_centrality(filtered_weight, mapping[target])
     
-    return sorted_centrals
-
-# with open("conf_600_900", 'w') as f:
-#     json.dump(lists, f, indent = 2)
+    important = list(weighted_centrality.items())
+    
+    return important
