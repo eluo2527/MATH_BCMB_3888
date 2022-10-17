@@ -36,3 +36,43 @@ def importance(confidence):
     important = list(weighted_centrality.items())
     
     return important
+
+def ranking(graph, groups, weight):
+    names = func.parser(graph.nodes(), False)
+    
+    essential = pd.read_csv("network_info/essential_proteins.csv", header = None, usecols = [1])
+    essential = essential[1].tolist()
+    for i in range(len(essential)):
+        key = "4932." + essential[i]
+        if key in names.keys():
+            essential[i] = names[key]
+    
+    cluster = weight[0][0]
+    index = int(cluster[1:])
+    
+    new_graph = graph.subgraph(groups[index])
+    
+    bet = nx.betweenness_centrality(new_graph)
+    bet = (sorted(bet.items(), key=lambda item: -item[1]))
+
+    eig = nx.eigenvector_centrality(new_graph)
+    eig = (sorted(eig.items(), key=lambda item: -item[1]))
+    
+    for i in range(len(eig)):
+        eig[i] = (names[eig[i][0]],eig[i][1])
+        bet[i] = (names[bet[i][0]],bet[i][1])
+        
+    combine = {}
+    for i in range(len(eig)):
+        combine[eig[i][0]] = i + 1
+
+    for i in range(len(bet)):
+        combine[bet[i][0]] += (i + 1)
+    
+    combine = (sorted(combine.items(), key=lambda item: item[1]))
+    
+    for protein in combine:
+        if protein[0] in essential:
+            combine.remove(protein)
+    
+    return combine
