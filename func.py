@@ -395,8 +395,9 @@ def json_save(string: str, filename: str) -> None:
 
 def cluster_visualise(G : nx.Graph, *clusters : tuple) -> nx.Graph:
     '''
-    This will take into different clusters and graph them using different colours
+    This will take different clusters and graph them using different colours
     '''
+    
     colour_map = ['tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'tab:orange']
 
     # storing a node with its corresponding index for its cluster
@@ -406,18 +407,18 @@ def cluster_visualise(G : nx.Graph, *clusters : tuple) -> nx.Graph:
         for node in cluster:
             colour_dict[node] = i
     
-    # this will be passed into the draw method as the colour assignment
+    # creating our cluster graph
     G_0 = cluster_graph(G, *clusters)
-    # nx.draw(G_0)
+
+    # this will be passed into the draw method as the colour assignment
     node_colours = []
 
     # list of all nodes 
     all_nodes = G_0.nodes()
 
+    # assigning nodes from the same cluster the same colour from the colour_map
     for node in all_nodes:
         node_colours.append(colour_map[colour_dict[node]])
-
-    print(node_colours)
 
     nx.draw(G_0, node_color = node_colours)
 
