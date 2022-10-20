@@ -97,7 +97,8 @@ print(c32_sorted)
 # gives first 5 maybe or more to BCMB students
 c32_sorted = func.parser(c32_sorted.keys(), False)
 print(G)
-# Iscolated the middle section of the graph as seen in an earlier picture
+
+# Isolated the middle section of the graph as seen in an earlier picture
 # Used clsuter 32 as the source as it contains LPD1 
 
 filtered_weight = func.connected_clusters(weighted_network_rename, 'w32')

@@ -1,3 +1,4 @@
+from tokenize import cookie_re
 from typing import OrderedDict
 import pandas as pd
 import networkx as nx
@@ -392,3 +393,33 @@ def json_save(string: str, filename: str) -> None:
     # json.dump(string, f, indent=4)
     # f.close()
 
+def cluster_visualise(G : nx.Graph, *clusters : tuple) -> nx.Graph:
+    '''
+    This will take into different clusters and graph them using different colours
+    '''
+    colour_map = ['tab:green', 'tab:blue', 'tab:red', 'tab:purple', 'tab:orange']
+
+    # storing a node with its corresponding index for its cluster
+    colour_dict = {}
+
+    for cluster, i in zip(clusters, range(len(clusters))):
+        for node in cluster:
+            colour_dict[node] = i
+    
+    # this will be passed into the draw method as the colour assignment
+    G_0 = cluster_graph(G, *clusters)
+    # nx.draw(G_0)
+    node_colours = []
+
+    # list of all nodes 
+    all_nodes = G_0.nodes()
+
+    for node in all_nodes:
+        node_colours.append(colour_map[colour_dict[node]])
+
+    print(node_colours)
+
+    nx.draw(G_0, node_color = node_colours)
+
+
+# cluster_visualise(None, [1,2,3,4], [5,6,7,8])
