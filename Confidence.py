@@ -7,12 +7,9 @@ import pandas as pd
 import func
 from pprint import pprint
 
-def importance(confidence):
+def importance(confidence, target = "4932.YFL018C"):
     network_name = "network_info/4932_protein_links_v11_5.txt"
     G = func.remove_threshold(network_name, confidence)
-    
-#     essential_proteins = "network_info/essential_proteins.csv"
-#     G = func.remove_essential(G, essential_proteins)
 
     adj_matrix = nx.adjacency_matrix(G) 
     protein_hash = {}
@@ -24,7 +21,7 @@ def importance(confidence):
     
     named_clusters = func.renaming_clusters(clusters, protein_hash)
     
-    target = func.find_cluster("4932.YFL018C", named_clusters)
+    target = func.find_cluster(target, named_clusters)
     
     weighted_network = func.convert_to_weighted(G, named_clusters)
     
@@ -35,7 +32,7 @@ def importance(confidence):
     
     important = list(weighted_centrality.items())
     
-    return important
+    return (G, named_clusters, important)
 
 def ranking(graph, groups, weight):
     names = func.parser(graph.nodes(), False)
