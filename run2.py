@@ -195,6 +195,8 @@ if __name__ == '__main__':
     for threshold in tqdm(thresholds):
         results_by_threshold[threshold] = unified_list(threshold, func.name_change('PDA1'))
     df = pd.DataFrame(results_by_threshold)
-    df.to_csv('results/proteins_by_threshold.csv')
+    df.index.name = 'Protein'
+    print(df.index)
+    # df.to_csv('results/proteins_by_threshold.csv')
     # pprint(unified_list(900, func.name_change('PDA1')))
     # func.json_save(protein_score,"results/unified_list")
