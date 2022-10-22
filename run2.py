@@ -164,6 +164,7 @@ def unified_list(threshold : int, important_node : str):
 
     # saves the weighted centrality 
     protein_score = {}
+    out_of_cluster_norm_factor = sum(weighted_centrality.values())
     for (cluster,score) in list(weighted_centrality.items())[0:5]:
         cluster_index = cluster[1:]
         proteins = named_clusters[int(cluster_index)]
@@ -171,9 +172,9 @@ def unified_list(threshold : int, important_node : str):
 
         protein_subgraph = G.subgraph(list(proteins))
         e = nx.eigenvector_centrality(protein_subgraph)
-        norm_factor = sum(e.values())
+        in_cluster_norm_factor = sum(e.values())
         for (protein,in_cluster_score) in list(e.items())[0:5]:
-            protein_score[func.name_change(protein)] = in_cluster_score*score/norm_factor
+            protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor/out_of_cluster_norm_factor
     return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
 if __name__ == '__main__':
@@ -191,12 +192,22 @@ if __name__ == '__main__':
     #     main(threshold, important_nodes)
 
     thresholds = range(100,1000,100)
-    results_by_threshold = {}
+
+
+
+    results_by_threshold = []
     for threshold in tqdm(thresholds):
-        results_by_threshold[threshold] = unified_list(threshold, func.name_change('PDA1'))
-    df = pd.DataFrame(results_by_threshold)
-    df.index.name = 'Protein'
-    print(df.index)
-    # df.to_csv('results/proteins_by_threshold.csv')
-    # pprint(unified_list(900, func.name_change('PDA1')))
-    # func.json_save(protein_score,"results/unified_list")
+        results_by_threshold.append(unified_list(threshold, func.name_change('PDA1')))
+    
+    data = defaultdict(lambda: len(list(thresholds))*[float("nan")])
+    data['threshold'] = list(thresholds)
+    for index, result in enumerate(results_by_threshold): # you can list as many input dicts as you want here
+        for key, value in result.items():
+            data[key][index] = value
+    print(data)
+
+    df = pd.DataFrame(dict(data))
+    # pprint(results_by_threshold)
+    # print('\n')
+    # pprint(dd)
+    df.to_csv('results/proteins_by_threshold.csv')

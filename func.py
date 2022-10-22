@@ -56,6 +56,31 @@ def remove_essential(G : nx.Graph, file_name : str) -> nx.Graph:
 
     return G
 
+def remove_essentials_from_list(proteins : list,file_name : str) -> list:
+    '''Removes all essential proteins from a list
+    
+    proteins -> list of proteins
+
+    file_name -> the file that stores all the essential proteins
+
+    returns the list without these proteins
+    '''
+
+    # this file was in the Ed which details all the essential nodes to remove
+    essential = pd.read_csv(file_name, header = None, usecols = [1])
+    essential = essential[1].tolist()
+
+    # here is the actual removal process
+    for protein in essential:
+        protein = "4932." + protein
+
+    out_list = []
+    for protein in proteins:
+        if protein not in essential:
+            out_list.append(protein)
+
+    return out_list
+
 def parser(names : list, val = True) -> dict:
     '''
     Converts all protein names to the names in the network
