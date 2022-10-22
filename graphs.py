@@ -1,5 +1,3 @@
-from tabnanny import check
-from turtle import color
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +5,7 @@ from collections import OrderedDict
 import func
 import random
 
-df = pd.read_csv("results/proteins_by_threshold600-800_detailed.csv")
+df = pd.read_csv("results/proteins_by_threshold_detailed.csv")
 
 threshold=df['threshold']
 
