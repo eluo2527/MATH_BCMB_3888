@@ -26,13 +26,6 @@ from pprint import pprint
 from joblib import Parallel, delayed
 import multiprocessing
 
-def blockPrint():
-    sys.stdout = open(os.devnull, 'w')
-
-# Restore
-def enablePrint():
-    sys.stdout = sys.__stdout__
-
 def main(threshold : int, important_nodes : dict):
 
     # Create the network and remove initial nodes 
@@ -224,6 +217,13 @@ def run_sequential(range):
     df.to_csv('results/proteins_by_threshold_detailed.csv')
 
 def multiprocess_func(threshold):
+    def blockPrint():
+        sys.stdout = open(os.devnull, 'w')
+
+    # Restore
+    def enablePrint():
+        sys.stdout = sys.__stdout__
+
     print("Starting threshold ", threshold)
     blockPrint()
     output = (threshold,unified_list(threshold, func.name_change('PDA1')))
