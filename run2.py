@@ -5,6 +5,7 @@ and saves relevant data in JSON files
 
 
 # from logging import warning
+from cProfile import run
 import sys, os
 
 import operator
@@ -200,6 +201,28 @@ def unified_list(threshold : int, important_node : str):
         protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
     return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
+def run_sequential(range):
+    results_by_threshold = []
+    for threshold in tqdm(thresholds):
+        results_by_threshold.append(unified_list(threshold, func.name_change('PDA1')))
+
+    data = defaultdict(lambda: len(list(thresholds))*[float("nan")])
+    data['threshold'] = list(thresholds)
+    for index, result in enumerate(results_by_threshold): # you can list as many input dicts as you want here
+        for key, value in result.items():
+            data[key][index] = value
+
+    df = pd.DataFrame(dict(data))
+    # normalize df
+    threshold=df['threshold']
+
+    df=df.drop('threshold', axis=1)
+    df=df.div(df.sum(axis=1), axis=0)
+    df.insert(loc=0, column='threshold', value=threshold)
+
+    print(df)
+    df.to_csv('results/proteins_by_threshold_detailed.csv')
+
 def multiprocess_func(threshold):
     print("Starting threshold ", threshold)
     blockPrint()
@@ -208,28 +231,7 @@ def multiprocess_func(threshold):
     print("Finishing threshold ", threshold)
     return output
 
-if __name__ == '__main__':
-    # These are the essential proteins that the biochemist have identified 
-    # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    # E3 protein is LPD1
-    # names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
-    # important_nodes = func.parser(names)
-
-    # # print(important_nodes)
-
-    # threshold_scores = [600, 700, 800, 900]
-
-    # for threshold in threshold_scores:
-    #     main(threshold, important_nodes)
-
-    thresholds = range(100,901,10)
-
-
-
-    # results_by_threshold = []
-    # for threshold in tqdm(thresholds):
-    #     results_by_threshold.append(unified_list(threshold, func.name_change('PDA1')))
-    
+def run_parallel(range):
     num_cores = multiprocessing.cpu_count()
     results = Parallel(n_jobs=num_cores)(delayed(multiprocess_func)(threshold) for threshold in thresholds)
     results_by_threshold = [result[1] for result in sorted(results, key=lambda result: result[0])]
@@ -251,3 +253,23 @@ if __name__ == '__main__':
 
     print(df)
     df.to_csv('results/proteins_by_threshold_detailed.csv')
+    return df
+
+if __name__ == '__main__':
+    # These are the essential proteins that the biochemist have identified 
+    # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
+    # E3 protein is LPD1
+    # names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
+    # important_nodes = func.parser(names)
+
+    # # print(important_nodes)
+
+    # threshold_scores = [600, 700, 800, 900]
+
+    # for threshold in threshold_scores:
+    #     main(threshold, important_nodes)
+
+    thresholds = range(100,901,10)
+    run_parallel(thresholds)
+
+
