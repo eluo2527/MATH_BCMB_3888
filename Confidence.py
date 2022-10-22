@@ -34,7 +34,7 @@ def importance(confidence, target = "4932.YFL018C"):
     
     return (G, named_clusters, important)
 
-def ranking(graph, groups, weight):
+def ranking(graph, groups, weight, num = 0):
     names = func.parser(graph.nodes(), False)
     
     essential = pd.read_csv("network_info/essential_proteins.csv", header = None, usecols = [1])
@@ -44,7 +44,7 @@ def ranking(graph, groups, weight):
         if key in names.keys():
             essential[i] = names[key]
     
-    cluster = weight[0][0]
+    cluster = weight[num][0]
     index = int(cluster[1:])
     
     new_graph = graph.subgraph(groups[index])
