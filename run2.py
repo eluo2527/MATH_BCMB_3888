@@ -5,16 +5,19 @@ and saves relevant data in JSON files
 
 
 # from logging import warning
+import operator
+from collections import defaultdict
+import pandas as pd
+from tqdm import tqdm
 import networkx as nx
 import markov_clustering as mc
 # import numpy as np
 # import scipy as sp
 # import matplotlib.pyplot as plt
-# import pandas as pd
 import func
 import warnings
 import json
-import os
+from pprint import pprint
 def main(threshold : int, important_nodes : dict):
 
     # Create the network and remove initial nodes 
@@ -108,8 +111,8 @@ def unified_list(threshold : int, important_node : str):
     print("Importing Proteins and removing essentials")
     G = func.remove_threshold(network_name, threshold)
 
-    essential_proteins = "network_info/essential_proteins.csv"
-    G = func.remove_essential(G, essential_proteins)
+    # essential_proteins = "network_info/essential_proteins.csv"
+    # G = func.remove_essential(G, essential_proteins)
 
     # Find the clusters
     # Here we are going to lose the protein names as the matrix gets assigned to their index. 
@@ -160,9 +163,18 @@ def unified_list(threshold : int, important_node : str):
     weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(cluster))
 
     # saves the weighted centrality 
-    print(weighted_centrality)
+    protein_score = {}
     for (cluster,score) in list(weighted_centrality.items())[0:5]:
-        print(cluster,score)
+        cluster_index = cluster[1:]
+        proteins = named_clusters[int(cluster_index)]
+        # print(proteins)
+
+        protein_subgraph = G.subgraph(list(proteins))
+        e = nx.eigenvector_centrality(protein_subgraph)
+        norm_factor = sum(e.values())
+        for (protein,in_cluster_score) in list(e.items())[0:5]:
+            protein_score[func.name_change(protein)] = in_cluster_score*score/norm_factor
+    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
 if __name__ == '__main__':
     # These are the essential proteins that the biochemist have identified 
@@ -178,4 +190,11 @@ if __name__ == '__main__':
     # for threshold in threshold_scores:
     #     main(threshold, important_nodes)
 
-    print(unified_list(600, func.name_change("PDA1")))
+    thresholds = range(100,1000,100)
+    results_by_threshold = {}
+    for threshold in tqdm(thresholds):
+        results_by_threshold[threshold] = unified_list(threshold, func.name_change('PDA1'))
+    df = pd.DataFrame(results_by_threshold)
+    df.to_csv('results/proteins_by_threshold.csv')
+    # pprint(unified_list(900, func.name_change('PDA1')))
+    # func.json_save(protein_score,"results/unified_list")
