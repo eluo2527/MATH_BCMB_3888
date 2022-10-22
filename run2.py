@@ -153,19 +153,18 @@ def unified_list(threshold : int, important_node : str):
     # value = cluster index ie 32
 
 
-    cluster = func.find_cluster(important_node, named_clusters)
+    protein_cluster = func.find_cluster(important_node, named_clusters)
     # loop over all important clusters and find betweenness scores
-    print(important_node, cluster)
+    print(important_node, protein_cluster)
     
     # this here creates a connected weighted network with one of the important
     # clusters as a source
-    filtered_weight = func.connected_clusters(weighted_network_rename, 'w' + str(cluster))
-    weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(cluster))
+    filtered_weight = func.connected_clusters(weighted_network_rename, 'w' + str(protein_cluster))
+    weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(protein_cluster))
 
     # saves the weighted centrality 
     protein_score = {}
-    out_of_cluster_norm_factor = sum(weighted_centrality.values())
-    for (cluster,score) in list(weighted_centrality.items())[0:5]:
+    for (cluster,score) in sorted(list(weighted_centrality.items()),key=lambda i: i[1],reverse=True)[0:3]:
         cluster_index = cluster[1:]
         proteins = named_clusters[int(cluster_index)]
         # print(proteins)
@@ -173,8 +172,18 @@ def unified_list(threshold : int, important_node : str):
         protein_subgraph = G.subgraph(list(proteins))
         e = nx.eigenvector_centrality(protein_subgraph)
         in_cluster_norm_factor = sum(e.values())
-        for (protein,in_cluster_score) in list(e.items())[0:5]:
-            protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor/out_of_cluster_norm_factor
+        for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True)[0:3]:
+            protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
+    
+    # Check cluster that protein is in
+    score = 1 # A bit arbitrary - needs some thought
+    protein_subgraph = G.subgraph(list(named_clusters[protein_cluster]))    
+    e = nx.eigenvector_centrality(protein_subgraph)
+    e.pop(important_node)
+    in_cluster_norm_factor = sum(e.values())
+    for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True)[0:min(5,len(list(e.items())))]:
+        # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
+        protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
     return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
 if __name__ == '__main__':
@@ -191,7 +200,7 @@ if __name__ == '__main__':
     # for threshold in threshold_scores:
     #     main(threshold, important_nodes)
 
-    thresholds = range(100,1000,100)
+    thresholds = range(801,901,10)
 
 
 
@@ -204,10 +213,14 @@ if __name__ == '__main__':
     for index, result in enumerate(results_by_threshold): # you can list as many input dicts as you want here
         for key, value in result.items():
             data[key][index] = value
-    print(data)
 
     df = pd.DataFrame(dict(data))
-    # pprint(results_by_threshold)
-    # print('\n')
-    # pprint(dd)
-    df.to_csv('results/proteins_by_threshold.csv')
+    # normalize df
+    threshold=df['threshold']
+
+    df=df.drop('threshold', axis=1)
+    df=df.div(df.sum(axis=1), axis=0)
+    df.insert(loc=0, column='threshold', value=threshold)
+
+    print(df)
+    df.to_csv('results/proteins_by_threshold600-800_detailed.csv')
