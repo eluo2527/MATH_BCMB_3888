@@ -249,7 +249,7 @@ def unified_list(threshold : int, protein_of_interest : str):
 
     # saves the weighted centrality 
     protein_score = {}
-    for (cluster,score) in sorted(list(weighted_centrality.items()),key=lambda i: i[1],reverse=True)[0:3]:
+    for (cluster,score) in sorted(list(weighted_centrality.items()),key=lambda i: i[1],reverse=True)[0:10]:
         cluster_index = cluster[1:]
         proteins = named_clusters[int(cluster_index)]
         # print(proteins)
@@ -257,7 +257,7 @@ def unified_list(threshold : int, protein_of_interest : str):
         protein_subgraph = G.subgraph(list(proteins))
         e = nx.eigenvector_centrality(protein_subgraph)
         in_cluster_norm_factor = sum(e.values())
-        for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True)[0:3]:
+        for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True):
             protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
     
     # Check cluster that protein is in
@@ -266,12 +266,12 @@ def unified_list(threshold : int, protein_of_interest : str):
     e = nx.eigenvector_centrality(protein_subgraph)
     e.pop(protein_of_interest)
     in_cluster_norm_factor = sum(e.values())
-    for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True)[0:min(5,len(list(e.items())))]:
+    for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True):
         # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
         protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
-    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
+    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True)[0:25])
 
-def run_sequential(thresholds,protein_of_interest,base_file_name="proteins_by_threshold.csv"):
+def run_sequential(thresholds,protein_of_interest,base_file_name="proteins_by_threshold"):
     results_by_threshold = []
     for threshold in tqdm(thresholds):
         results_by_threshold.append(measure_nearest_cluster(threshold, func.name_change(protein_of_interest)))
@@ -312,7 +312,7 @@ def get_multiprocess_func(protein_of_interest):
 
     return output_func
 
-def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_threshold.csv"):
+def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_threshold"):
     
     multiprocess_func = get_multiprocess_func(protein_of_interest)
     num_cores = multiprocessing.cpu_count()
@@ -341,7 +341,7 @@ def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_thres
 
 if __name__ == '__main__':
     names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    base_file_name = "proteins_by_threshold_800-900-1"
+    base_file_name = "proteins_by_threshold_800-900-1_25_proteins"
     for name in names:
         thresholds = range(800,901,1)
         run_parallel(thresholds,name)
