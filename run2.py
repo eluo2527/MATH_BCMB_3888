@@ -112,7 +112,22 @@ def main(threshold : int, important_nodes : dict):
                     sorted_betweeness_names[func.name_change(key)] = b_centrality[key]
                 func.json_save(sorted_betweeness_names, 'results/' + str(threshold) + '/' + name + '/' + name + '_' + my_ls[i][0] + '_betweeness.json')
 
-def measure_nearest_cluster(threshold:int, important_node:str):
+def run_main():
+    # These are the essential proteins that the biochemist have identified 
+    # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
+    # E3 protein is LPD1
+    names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
+    important_nodes = func.parser(names)
+
+    # print(important_nodes)
+
+    threshold_scores = [600, 700, 800, 900]
+
+    for threshold in threshold_scores:
+        main(threshold, important_nodes)
+    return True
+
+def measure_nearest_cluster(threshold:int, protein_of_interest:str):
     # Create the network and remove initial nodes 
     network_name = "network_info/4932_protein_links_v11_5.txt"
     print("Importing Proteins and removing essentials")
@@ -160,20 +175,21 @@ def measure_nearest_cluster(threshold:int, important_node:str):
     # value = cluster index ie 32
 
 
-    protein_cluster = func.find_cluster(important_node, named_clusters)
+    protein_cluster = func.find_cluster(protein_of_interest, named_clusters)
     # loop over all important clusters and find betweenness scores
-    print(important_node, protein_cluster)
+    print(protein_of_interest, protein_cluster)
     protein_score = {}
     score = 1 # A bit arbitrary - needs some thought
     protein_subgraph = G.subgraph(list(named_clusters[protein_cluster]))    
     e = nx.eigenvector_centrality(protein_subgraph)
-    e.pop(important_node)
+    e.pop(protein_of_interest)
     in_cluster_norm_factor = sum(e.values())
     for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True):
         # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
         protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
     return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
-def unified_list(threshold : int, important_node : str):
+
+def unified_list(threshold : int, protein_of_interest : str):
 
     # Create the network and remove initial nodes 
     network_name = "network_info/4932_protein_links_v11_5.txt"
@@ -222,9 +238,9 @@ def unified_list(threshold : int, important_node : str):
     # value = cluster index ie 32
 
 
-    protein_cluster = func.find_cluster(important_node, named_clusters)
+    protein_cluster = func.find_cluster(protein_of_interest, named_clusters)
     # loop over all important clusters and find betweenness scores
-    print(important_node, protein_cluster)
+    print(protein_of_interest, protein_cluster)
     
     # this here creates a connected weighted network with one of the important
     # clusters as a source
@@ -248,17 +264,17 @@ def unified_list(threshold : int, important_node : str):
     score = 1 # A bit arbitrary - needs some thought
     protein_subgraph = G.subgraph(list(named_clusters[protein_cluster]))    
     e = nx.eigenvector_centrality(protein_subgraph)
-    e.pop(important_node)
+    e.pop(protein_of_interest)
     in_cluster_norm_factor = sum(e.values())
     for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True)[0:min(5,len(list(e.items())))]:
         # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
         protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
     return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
-def run_sequential(range):
+def run_sequential(thresholds,protein_of_interest,base_file_name="proteins_by_threshold.csv"):
     results_by_threshold = []
     for threshold in tqdm(thresholds):
-        results_by_threshold.append(measure_nearest_cluster(threshold, func.name_change('PTC5')))
+        results_by_threshold.append(measure_nearest_cluster(threshold, func.name_change(protein_of_interest)))
 
     data = defaultdict(lambda: len(list(thresholds))*[float("nan")])
     data['threshold'] = list(thresholds)
@@ -275,9 +291,9 @@ def run_sequential(range):
     df.insert(loc=0, column='threshold', value=threshold)
 
     print(df)
-    df.to_csv('results/PTC5_proteins_by_threshold.csv')
+    df.to_csv(f'results/data/{protein_of_interest}_{base_file_name}.csv', index=False)
 
-def multiprocess_func(threshold):
+def get_multiprocess_func(protein_of_interest):
     def blockPrint():
         sys.stdout = open(os.devnull, 'w')
 
@@ -285,14 +301,20 @@ def multiprocess_func(threshold):
     def enablePrint():
         sys.stdout = sys.__stdout__
 
-    print("Starting threshold ", threshold)
-    blockPrint()
-    output = (threshold,unified_list(threshold, func.name_change('PDA1')))
-    enablePrint()
-    print("Finishing threshold ", threshold)
-    return output
+    def output_func(threshold):
+        print("Starting threshold ", threshold)
+        blockPrint()
+        output = (threshold,unified_list(threshold, func.name_change(protein_of_interest)))
+        enablePrint()
+        print("Finishing threshold ", threshold)
+        return output
 
-def run_parallel(range):
+
+    return output_func
+
+def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_threshold.csv"):
+    
+    multiprocess_func = get_multiprocess_func(protein_of_interest)
     num_cores = multiprocessing.cpu_count()
     results = Parallel(n_jobs=num_cores)(delayed(multiprocess_func)(threshold) for threshold in thresholds)
     results_by_threshold = [result[1] for result in sorted(results, key=lambda result: result[0])]
@@ -313,23 +335,14 @@ def run_parallel(range):
     df.insert(loc=0, column='threshold', value=threshold)
 
     print(df)
-    df.to_csv('results/proteins_by_threshold_detailed_extra.csv')
+    df.to_csv(f'results/data/{protein_of_interest}_{base_file_name}.csv', index=False)
     return df
 
+
 if __name__ == '__main__':
-    # These are the essential proteins that the biochemist have identified 
-    # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    # E3 protein is LPD1
-    # names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
-    # important_nodes = func.parser(names)
-
-    # # print(important_nodes)
-
-    # threshold_scores = [600, 700, 800, 900]
-
-    # for threshold in threshold_scores:
-    #     main(threshold, important_nodes)
-
-    thresholds = range(800,901,5)
-    run_sequential(thresholds)
+    names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
+    base_file_name = "proteins_by_threshold_800-900-1"
+    for name in names:
+        thresholds = range(800,901,1)
+        run_parallel(thresholds,name)
 
