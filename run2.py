@@ -112,6 +112,67 @@ def main(threshold : int, important_nodes : dict):
                     sorted_betweeness_names[func.name_change(key)] = b_centrality[key]
                 func.json_save(sorted_betweeness_names, 'results/' + str(threshold) + '/' + name + '/' + name + '_' + my_ls[i][0] + '_betweeness.json')
 
+def measure_nearest_cluster(threshold:int, important_node:str):
+    # Create the network and remove initial nodes 
+    network_name = "network_info/4932_protein_links_v11_5.txt"
+    print("Importing Proteins and removing essentials")
+    G = func.remove_threshold(network_name, threshold)
+
+    # essential_proteins = "network_info/essential_proteins.csv"
+    # G = func.remove_essential(G, essential_proteins)
+
+    # Find the clusters
+    # Here we are going to lose the protein names as the matrix gets assigned to their index. 
+    # So we recover that with a hash table (dictionary)
+
+    with warnings.catch_warnings():
+        print("Creating adjacency matrix ")
+        warnings.simplefilter("ignore")
+        adj_matrix = nx.adjacency_matrix(G) 
+
+    #Runs MCL 
+    # run with default parameters   
+    print("Performing MCL") 
+    result = mc.run_mcl(adj_matrix)         
+    clusters = mc.get_clusters(result) 
+
+    # Create a hash table that takes takes a number and returns a protein name
+    protein_hash = {}
+    for index, node in enumerate(G.nodes):
+        protein_hash[index] = node
+
+    # Renaming proteins in the clusters
+    named_clusters = func.renaming_clusters(clusters, protein_hash)
+
+    # Create weighted network of clusters
+    print("Creating weighted network of clusters")
+
+    weighted_network = func.convert_to_weighted(G, named_clusters)
+    print(weighted_network)
+
+    # Renames the clusters in the weighted network as w0, w1, w2, ...
+    mapping = {node : f"w{node}" for node in weighted_network.nodes}
+    weighted_network_rename = nx.relabel_nodes(weighted_network, mapping)
+
+    # Finds the index of the cluster each node corresponds to
+
+    # key = protein name, ie LPD1
+    # value = cluster index ie 32
+
+
+    protein_cluster = func.find_cluster(important_node, named_clusters)
+    # loop over all important clusters and find betweenness scores
+    print(important_node, protein_cluster)
+    protein_score = {}
+    score = 1 # A bit arbitrary - needs some thought
+    protein_subgraph = G.subgraph(list(named_clusters[protein_cluster]))    
+    e = nx.eigenvector_centrality(protein_subgraph)
+    e.pop(important_node)
+    in_cluster_norm_factor = sum(e.values())
+    for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True):
+        # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
+        protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
+    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 def unified_list(threshold : int, important_node : str):
 
     # Create the network and remove initial nodes 
@@ -197,7 +258,7 @@ def unified_list(threshold : int, important_node : str):
 def run_sequential(range):
     results_by_threshold = []
     for threshold in tqdm(thresholds):
-        results_by_threshold.append(unified_list(threshold, func.name_change('PDA1')))
+        results_by_threshold.append(measure_nearest_cluster(threshold, func.name_change('PTC5')))
 
     data = defaultdict(lambda: len(list(thresholds))*[float("nan")])
     data['threshold'] = list(thresholds)
@@ -214,7 +275,7 @@ def run_sequential(range):
     df.insert(loc=0, column='threshold', value=threshold)
 
     print(df)
-    df.to_csv('results/proteins_by_threshold_detailed.csv')
+    df.to_csv('results/PTC5_proteins_by_threshold.csv')
 
 def multiprocess_func(threshold):
     def blockPrint():
@@ -252,7 +313,7 @@ def run_parallel(range):
     df.insert(loc=0, column='threshold', value=threshold)
 
     print(df)
-    df.to_csv('results/proteins_by_threshold_detailed.csv')
+    df.to_csv('results/proteins_by_threshold_detailed_extra.csv')
     return df
 
 if __name__ == '__main__':
@@ -269,7 +330,6 @@ if __name__ == '__main__':
     # for threshold in threshold_scores:
     #     main(threshold, important_nodes)
 
-    thresholds = range(100,901,10)
-    run_parallel(thresholds)
-
+    thresholds = range(800,901,5)
+    run_sequential(thresholds)
 

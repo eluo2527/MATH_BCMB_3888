@@ -5,7 +5,7 @@ from collections import OrderedDict
 import func
 import random
 
-df = pd.read_csv("results/proteins_by_threshold_detailed.csv")
+df = pd.read_csv("results/PTC5_proteins_by_threshold.csv")
 
 threshold=df['threshold']
 
