@@ -5,8 +5,8 @@ from collections import OrderedDict
 import func
 import random
 
-def draw_protein_vs_threshold(protein):
-    df = pd.read_csv(f"results\data\{protein}_proteins_by_threshold.csv")
+def draw_protein_vs_threshold(protein,names):
+    df = pd.read_csv(f"results/data/{protein}_proteins_by_threshold.csv")
 
     threshold=df['threshold']
 
@@ -17,6 +17,9 @@ def draw_protein_vs_threshold(protein):
 
     ys = list(df.loc[0].index)
     ys.remove("threshold")
+    for name in names:
+        if name != protein and name in ys:
+            ys.remove(name)
     # ys = func.remove_essentials_from_list(ys,"network_info\essential_proteins.csv")
 
 
@@ -53,11 +56,11 @@ def draw_protein_vs_threshold(protein):
         # print(index,x_final)
     # plt.legend(by_label.values(), by_label.keys(),loc='upper center', bbox_to_anchor=(0.5, 0.95),
     #           ncol=15, fancybox=True, shadow=True)
-    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold.png", bbox_inches='tight')
+    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold_remove_direct.png", bbox_inches='tight')
     return True
 
 names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
 
 for name in names: 
     print(name)
-    draw_protein_vs_threshold(name)
+    draw_protein_vs_threshold(name,names)
