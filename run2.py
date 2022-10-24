@@ -269,7 +269,7 @@ def unified_list(threshold : int, protein_of_interest : str):
     for (protein,in_cluster_score) in sorted(list(e.items()),key=lambda i: i[1],reverse=True):
         # print(func.name_change(protein),in_cluster_score*score/in_cluster_norm_factor)
         protein_score[func.name_change(protein)] = in_cluster_score*score/in_cluster_norm_factor
-    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True)[0:25])
+    return dict( sorted(protein_score.items(), key=operator.itemgetter(1),reverse=True))
 
 def run_sequential(thresholds,protein_of_interest,base_file_name="proteins_by_threshold"):
     results_by_threshold = []
@@ -341,8 +341,9 @@ def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_thres
 
 if __name__ == '__main__':
     names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
-    for name in names:
-        thresholds = range(824,865,1)
-        run_parallel(thresholds,name,base_file_name=base_file_name)
-
+    # base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
+    # for name in names:
+    #     thresholds = range(824,865,1)
+    #     run_parallel(thresholds,name,base_file_name=base_file_name)
+    df = pd.DataFrame(unified_list(824, func.name_change('PDA1')).items())
+    df.to_csv(f'results/data/PDA1_whole_network_at_824', index=False)

@@ -17,9 +17,9 @@ def draw_protein_vs_threshold(protein,names):
 
     ys = list(df.loc[0].index)
     ys.remove("threshold")
-    for name in names:
-        if name != protein and name in ys:
-            ys.remove(name)
+    # for name in names:
+    #     if name != protein and name in ys:
+    #         ys.remove(name)
     # ys = func.remove_essentials_from_list(ys,"network_info\essential_proteins.csv")
 
 
@@ -27,15 +27,15 @@ def draw_protein_vs_threshold(protein,names):
     for y in ys:
         colour_map[y] = "#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)])
 
-    ax = df.plot(x="threshold", y=ys, kind="line",color=[colour_map.get(the_y, '#333333') for the_y in ys],figsize=(32,20))
+    ax = df.plot(x="threshold", y=ys, kind="line",color=[colour_map.get(the_y, '#333333') for the_y in ys],figsize=(16,10))
     ax.get_legend().remove()
     # handles, labels = plt.gca().get_legend_handles_labels()
     # by_label = OrderedDict(zip(labels, handles))
 
 
-    plt.xlabel("Threshold")
-    plt.ylabel("Normalized cluster_score*protein_score")
-    plt.title(f"{protein} importance by threshold")
+    plt.xlabel("Threshold",fontsize=14)
+    plt.ylabel("Normalized cluster_score*protein_score",fontsize=14)
+    plt.title(f"{protein} importance by threshold",fontsize=18)
 
     # make labels
 
@@ -51,12 +51,12 @@ def draw_protein_vs_threshold(protein,names):
             xpos,ypos = checklist[choice]
             random_offset = 1+(random.random()-0.5)/80
             xpos, ypos = random_offset*xpos, random_offset*ypos
-            plt.annotate(y, (xpos, ypos),color=colour_map[y],fontsize=15)
+            plt.annotate(y, (xpos, ypos),color=colour_map[y],fontsize=12)
 
         # print(index,x_final)
     # plt.legend(by_label.values(), by_label.keys(),loc='upper center', bbox_to_anchor=(0.5, 0.95),
     #           ncol=15, fancybox=True, shadow=True)
-    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold_824-864.png", bbox_inches='tight')
+    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold_800-900.png", bbox_inches='tight')
     return True
 
 names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
