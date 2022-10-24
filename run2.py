@@ -315,7 +315,7 @@ def get_multiprocess_func(protein_of_interest):
 def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_threshold"):
     
     multiprocess_func = get_multiprocess_func(protein_of_interest)
-    num_cores = multiprocessing.cpu_count()
+    num_cores = multiprocessing.cpu_count()-1
     results = Parallel(n_jobs=num_cores)(delayed(multiprocess_func)(threshold) for threshold in thresholds)
     results_by_threshold = [result[1] for result in sorted(results, key=lambda result: result[0])]
 
@@ -344,5 +344,5 @@ if __name__ == '__main__':
     base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
     for name in names:
         thresholds = range(824,865,1)
-        run_sequential(thresholds,name)
+        run_parallel(thresholds,name,base_file_name=base_file_name)
 
