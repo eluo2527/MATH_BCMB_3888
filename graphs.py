@@ -56,7 +56,7 @@ def draw_protein_vs_threshold(protein,names):
         # print(index,x_final)
     # plt.legend(by_label.values(), by_label.keys(),loc='upper center', bbox_to_anchor=(0.5, 0.95),
     #           ncol=15, fancybox=True, shadow=True)
-    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold_remove_direct.png", bbox_inches='tight')
+    plt.savefig(f"results\graphs\{protein}_proteins_by_threshold_824-864.png", bbox_inches='tight')
     return True
 
 names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
