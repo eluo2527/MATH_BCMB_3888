@@ -341,8 +341,8 @@ def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_thres
 
 if __name__ == '__main__':
     names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    base_file_name = "proteins_by_threshold_800-900-1_25_proteins"
+    base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
     for name in names:
-        thresholds = range(800,901,1)
-        run_parallel(thresholds,name)
+        thresholds = range(824,865,1)
+        run_sequential(thresholds,name)
 
