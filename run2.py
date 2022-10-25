@@ -90,27 +90,28 @@ def main(threshold : int, important_nodes : dict):
         weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(cluster))
 
         # saves the weighted centrality 
-        func.json_save(weighted_centrality, 'results/' + str(threshold) + '/' + name + '/' + name + '_weighted_centrality.json')
+        #func.json_save(weighted_centrality, 'results/' + str(threshold) + '/' + name + '/' + name + '_weighted_centrality.json')
+        df = pd.DataFrame(weighted_centrality.items())
+        df.to_csv(f"results/{threshold}_{name}_weighted_centrality.csv",index=False)
+        # # key = cluster w0, w1,
+        # # value = centrality value
+        # my_ls = list((key, value) for key, value in weighted_centrality.items())
 
-        # key = cluster w0, w1,
-        # value = centrality value
-        my_ls = list((key, value) for key, value in weighted_centrality.items())
+        # print('here')
 
-        print('here')
-
-        # this loops over the first 5 (can be changed) most important nodes
-        for i in range(5):
+        # # this loops over the first 5 (can be changed) most important nodes
+        # for i in range(5):
             
-            new_graph = func.cluster_graph(G, named_clusters[cluster], named_clusters[int(my_ls[i][0][1:])])
-            if nx.is_connected(new_graph):
+        #     new_graph = func.cluster_graph(G, named_clusters[cluster], named_clusters[int(my_ls[i][0][1:])])
+        #     if nx.is_connected(new_graph):
 
-                # finds betweeness score on the unweighted graph between important cluster (BCMB) and what we found
-                b_centrality = func.between_centrality(G, named_clusters[cluster], named_clusters[int(my_ls[i][0][1:])])
+        #         # finds betweeness score on the unweighted graph between important cluster (BCMB) and what we found
+        #         b_centrality = func.between_centrality(G, named_clusters[cluster], named_clusters[int(my_ls[i][0][1:])])
 
-                sorted_betweeness_names = {}
-                for key in b_centrality:
-                    sorted_betweeness_names[func.name_change(key)] = b_centrality[key]
-                func.json_save(sorted_betweeness_names, 'results/' + str(threshold) + '/' + name + '/' + name + '_' + my_ls[i][0] + '_betweeness.json')
+        #         sorted_betweeness_names = {}
+        #         for key in b_centrality:
+        #             sorted_betweeness_names[func.name_change(key)] = b_centrality[key]
+        #         func.json_save(sorted_betweeness_names, 'results/' + str(threshold) + '/' + name + '/' + name + '_' + my_ls[i][0] + '_betweeness.json')
 
 def run_main():
     # These are the essential proteins that the biochemist have identified 
@@ -121,7 +122,7 @@ def run_main():
 
     # print(important_nodes)
 
-    threshold_scores = [600, 700, 800, 900]
+    threshold_scores = [824,864]
 
     for threshold in threshold_scores:
         main(threshold, important_nodes)
@@ -340,10 +341,11 @@ def run_parallel(threshold,protein_of_interest,base_file_name="proteins_by_thres
 
 
 if __name__ == '__main__':
-    names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
-    # base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
-    # for name in names:
-    #     thresholds = range(824,865,1)
-    #     run_parallel(thresholds,name,base_file_name=base_file_name)
-    df = pd.DataFrame(unified_list(824, func.name_change('PDA1')).items())
-    df.to_csv(f'results/data/PDA1_whole_network_at_824', index=False)
+    # names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1'] # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
+    # # base_file_name = "proteins_by_threshold_824-864-1_25_proteins"
+    # # for name in names:
+    # #     thresholds = range(824,865,1)
+    # #     run_parallel(thresholds,name,base_file_name=base_file_name)
+    # df = pd.DataFrame(unified_list(824, func.name_change('PDA1')).items())
+    # df.to_csv(f'results/data/PDA1_whole_network_at_824', index=False)
+    run_main()
