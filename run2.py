@@ -87,12 +87,14 @@ def main(threshold : int, important_nodes : dict):
         # this here creates a connected weighted network with one of the important
         # clusters as a source
         filtered_weight = func.connected_clusters(weighted_network_rename, 'w' + str(cluster))
-        weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(cluster))
-
+        # weighted_centrality = func.weighted_centrality(filtered_weight, 'w' + str(cluster))
+        weighted_centrality = {}
+        for node in weighted_network_rename:
+            weighted_centrality[node] = weighted_network_rename.degree(node)
         # saves the weighted centrality 
         #func.json_save(weighted_centrality, 'results/' + str(threshold) + '/' + name + '/' + name + '_weighted_centrality.json')
         df = pd.DataFrame(weighted_centrality.items())
-        df.to_csv(f"results/{threshold}_{name}_weighted_centrality.csv",index=False)
+        df.to_csv(f"results/{threshold}_{name}_degree.csv",index=False)
         # # key = cluster w0, w1,
         # # value = centrality value
         # my_ls = list((key, value) for key, value in weighted_centrality.items())
@@ -117,7 +119,8 @@ def run_main():
     # These are the essential proteins that the biochemist have identified 
     # https://docs.google.com/document/d/12kaAjgjEsQtCOaRqw6g2ZNeLzN-rlzmLaGApKCdI1uc/edit 
     # E3 protein is LPD1
-    names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
+    # names = ['LPD1', 'PDA1', 'PYC2', 'PDB1', 'PTC1', 'BAT2', 'KGD1', 'AIM22', 'PKP1', 'PTC5', 'LAT1']
+    names = ['PDA1']
     important_nodes = func.parser(names)
 
     # print(important_nodes)
